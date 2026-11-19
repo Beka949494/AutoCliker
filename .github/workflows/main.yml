@@ -1,4 +1,4 @@
-
+```yaml
 name: Build APK
 
 on:
@@ -8,10 +8,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    steps:
-      - uses: actions/checkout@v4
+    defaults:
+      run:
+        working-directory: AutoClickerProject
 
-      - uses: actions/setup-java@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
@@ -21,6 +27,9 @@ jobs:
         with:
           packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
       - name: Build APK
         run: gradle assembleDebug
 
@@ -28,4 +37,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: AutoClickerProject/app/build/outputs/apk/debug/app-debug.apk
