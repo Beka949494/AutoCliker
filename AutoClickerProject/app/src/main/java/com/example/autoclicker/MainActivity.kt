@@ -1,4 +1,3 @@
-
 package com.example.autoclicker
 
 import android.app.Activity
@@ -13,6 +12,8 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val prefs = getSharedPreferences("autoclicker", MODE_PRIVATE)
+
         val layout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
@@ -25,15 +26,14 @@ class MainActivity : Activity() {
             gravity = Gravity.CENTER
         }
 
-        val priceLabel = TextView(this).apply {
+        val label = TextView(this).apply {
             text = "Ең төменгі баға (₸)"
             textSize = 18f
         }
 
         val price = EditText(this).apply {
-            setText("1")
+            setText(prefs.getLong("min_price", 1L).toString())
             inputType = 2
-            hint = "Мысалы: 2000"
         }
 
         val start = Button(this).apply {
@@ -42,7 +42,6 @@ class MainActivity : Activity() {
 
         val stop = Button(this).apply {
             text = "STOP"
-            isEnabled = false
         }
 
         val accessibility = Button(this).apply {
@@ -50,15 +49,12 @@ class MainActivity : Activity() {
         }
 
         val status = TextView(this).apply {
-            text = "Күйі: тоқтап тұр"
-            textSize = 16f
+            textSize = 18f
             gravity = Gravity.CENTER
-        }
-
-        accessibility.setOnClickListener {
-            startActivity(
-                Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-            )
+            text = if (prefs.getBoolean("running", false))
+                "Күйі: қосулы"
+            else
+                "Күйі: тоқтап тұр"
         }
 
         start.setOnClickListener {
@@ -67,25 +63,36 @@ class MainActivity : Activity() {
             if (minPrice == null || minPrice < 1) {
                 Toast.makeText(
                     this,
-                    "Бағаны 1 теңгеден бастап енгіз",
+                    "Бағаны дұрыс енгізіңіз",
                     Toast.LENGTH_SHORT
                 ).show()
                 return@setOnClickListener
             }
 
-            status.text = "Күйі: іске қосуға дайын"
-            start.isEnabled = false
-            stop.isEnabled = true
+            prefs.edit()
+                .putLong("min_price", minPrice)
+                .putBoolean("running", true)
+                .apply()
+
+            status.text = "Күйі: қосулы"
         }
 
         stop.setOnClickListener {
+            prefs.edit()
+                .putBoolean("running", false)
+                .apply()
+
             status.text = "Күйі: тоқтап тұр"
-            start.isEnabled = true
-            stop.isEnabled = false
+        }
+
+        accessibility.setOnClickListener {
+            startActivity(
+                Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+            )
         }
 
         layout.addView(title)
-        layout.addView(priceLabel)
+        layout.addView(label)
         layout.addView(price)
         layout.addView(start)
         layout.addView(stop)
